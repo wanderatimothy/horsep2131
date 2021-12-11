@@ -15,6 +15,11 @@ class pluralize {
     'miss'=>'miss',
     'mouse' => 'mice',
     'louse' => 'lice',
+    'goose' => 'geese',
+    'mongoose'=> 'mongeese',
+    'man' => 'men',
+    'woman' => 'women',
+    'child' => 'children'
   ];
   public $output;
 
@@ -48,6 +53,7 @@ class pluralize {
         $this->output = $word.'es';
         return;
       }
+      
 
       $this->output = $word.'s';
     }else{
@@ -55,6 +61,12 @@ class pluralize {
         $this->output = rtrim($word,'ye').'ies';
         return;
       }
+
+      if($last == 'o' && $second_last == 'g'){
+        $this->output = $word.'es';
+        return;
+      }
+      
       $this->output = $word.'s';
 
     }
