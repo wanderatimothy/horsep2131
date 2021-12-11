@@ -1,6 +1,6 @@
 {
     "name": "user/infrastructure",
-    "description": "infrastruture project for clean architecture php",
+    "description": "infrastructure project for clean architecture php",
     "type": "project",
     "authors": [
         {
