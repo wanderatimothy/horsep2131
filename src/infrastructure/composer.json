@@ -1,0 +1,12 @@
+{
+    "name": "user/infrastructure",
+    "description": "infrastruture project for clean architecture php",
+    "type": "project",
+    "authors": [
+        {
+            "name": "wanderazmind",
+            "email": "wanderatimothy2@gmail.com"
+        }
+    ],
+    "require": {}
+}
