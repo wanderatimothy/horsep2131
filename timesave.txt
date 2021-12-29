@@ -1,0 +1,40 @@
+<?php _template('_sidebar' , ['active' => 'properties']); ?>
+<main class="main-content position-relative max-height-vh-100 h-100 mt-1 border-radius-lg ">
+    <!-- Navbar -->
+    <?php _template('_system_navbar'); ?>
+    <!-- End Navbar -->
+    <div class="container-fluid py-4">
+
+
+
+
+
+    
+       
+        <?php _template('_system_footer');  ?>
+    </div>
+</main>
+<div class="fixed-plugin">
+    <a class="fixed-plugin-button text-dark position-fixed px-3 py-2">
+        <i class="fa fa-cog py-2"> </i>
+    </a>
+    <div class="card shadow-lg ">
+        <div class="card-header pb-0 pt-3 ">
+            <div class="float-start">
+                <h5 class="mt-3 mb-0">Notifications</h5>
+                <p>Send Email.</p>
+            </div>
+
+            <!-- End Toggle Button -->
+        </div>
+        <hr class="horizontal dark my-1">
+        <div class="card-body pt-sm-3 pt-0">
+
+
+        </div>
+    </div>
+</div>
+
+<?php _template('_core_scripts') ?>
+
+<?php _template('_plugin_scripts') ?>

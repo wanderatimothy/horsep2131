@@ -1,11 +1,13 @@
 <?php
-namespace infrastructure\database;
-
+namespace infrastructure\database\DB;
+use core\contracts\IConnection;
+use Exception;
+// use infrastructure\logger\Logger;
 use PDO;
 use PDOException;
 use PDOStatement;
 
-class connection {
+class connection  implements IConnection{
 
     private PDOStatement $pdo_statement;
 
@@ -17,6 +19,12 @@ class connection {
 
     public $last_error;
 
+    // public Logger $logger;
+
+    public function __construct(){
+        // $this->logger = new Logger('db_actions_log.log','db_action_log');
+    }
+
     function connect(){
         $configs = $this->get_db_config();
         $dns = 'mysql:host='.$configs->host.";dbname=".$configs->database;
@@ -24,19 +32,26 @@ class connection {
           $connection = new PDO($dns,$configs->user,$configs->password);
           return $connection;
         }catch(PDOException $e){
-            echo $e->getMessage();
+            // $this->logger->log()->error( $e->getMessage(). '\n');
             die;
         }
     }
 
     private function get_db_config(){
-        $data = file_get_contents('src/infrastructure/db/dbconfig.json');
-        $configs = json_decode($data);
-        return $configs;
+        $data = file_get_contents('src/infrastructure/database/DB/dbconfig.json');
+        try{
+            if(is_null($data)) throw new Exception('Configuration file was not found');
+            $configs = json_decode($data);
+            return $configs;
+        }catch(Exception $e){
+            // $this->logger->log()->error( $e->getMessage(). '\n');
+            return (object) ['host' => 'undefined' , 'database' => 'undefined', 'user'=>'undefined' , 'password' => 'undefined' , 'port' => 'undefined' ];
+        }
     }
 
 
     function runOperation($sql,array $parameters = null){
+
         $c = $this->connect();
         try{
             if(is_null($parameters)){
@@ -57,7 +72,9 @@ class connection {
 
         }catch(PDOException $e){
             $this->last_error = $c->errorInfo();
-            echo $e->getMessage();
+            debug_dump([$e->getMessage() , $sql , $parameters]);
+            // $this->logger->log()->error( $e->getMessage(). '\n');
+            // $this->logger->log()->error('query :: '.$sql . '\n');
             return false;
         }
        
@@ -67,7 +84,7 @@ class connection {
     function results(string $class = null){
         if(is_null($class)) return $this->pdo_statement->fetchAll(PDO::FETCH_ASSOC);
         $resultSet = array();
-        while ( $row = count($this->pdo_statement->fetchObject($class))){
+        while ( $row = $this->pdo_statement->fetchObject($class)){
             $resultSet[] =  $row;
         }
         return $resultSet;

@@ -5,4 +5,4 @@
         <p>strays away from the normal N-tire Architecture to be used on core projects where one wants to really get there hands dirty</p>
     </article>
 </div>
-<?php _template('shared._Footer'); ?>
+<?php _template('_Footer'); ?>

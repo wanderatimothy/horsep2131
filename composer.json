@@ -1,0 +1,22 @@
+{
+    "name": "user/admin",
+    "type": "project",
+    "authors": [
+        {
+            "name": "wanderazmind",
+            "email": "wanderatimothy2@gmail.com"
+        }
+    ],
+    "require": {
+        "miladrahimi/php-jwt": "2.*",
+        "monolog/monolog": "^2.0",
+        "guzzlehttp/guzzle": "^7.0.1",
+        "symfony/mailer": "^6.0"
+
+    },
+    "autoload":{
+        "psr-4": {
+            "src\\": "src/"
+        }
+    }
+}

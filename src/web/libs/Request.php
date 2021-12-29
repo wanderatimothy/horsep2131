@@ -1,47 +1,55 @@
 <?php
 namespace web\libs;
 
+use RuntimeException;
+
 class Request {
+ public $method;
 
-    public $body;
+ public function __construct()
+ {
+    $this->method = $this->getRequestMethod();
+    $this->getRequestBody();
+ }
 
-    function __construct()
-    {
-        $this->body = $this->get_body();
+
+ public function getRequestBody(){
+
+    if(empty($_POST) || $_POST == NULL ){
+       $input = file_get_contents('php://input');
+       $data = json_decode($input);
+       $this->body = $data;
+    }else{
+       $this->body = (object) $_POST;
+       $this->files = (object) $_FILES;
     }
 
-    private function get_body(){
-        $this->method = $_SERVER['REQUEST_METHOD'];
-        if(strtoupper($this->method) == 'GET'){
-         $this->body = null;
-         return;
-        }
-        if(strtoupper($this->method) == 'POST'){
-            $this->body = (object) $_POST;
-            return;
-        }else{
-            $data =  file_get_contents('php://input');
-            $this->body = json_decode($data);
-        }
+ }
+ 
 
-        $this->files = $_FILES;
-
+ function hasFiles():bool{
+    $keys = array_keys($_FILES);
+    $file_count = 0;
+    foreach($keys as $key){
+      if(!empty($_FILES[$key]['name'])){
+         $file_count++;
+      }
     }
-
-    function get_http_header(string $header){
-        $h = strtoupper('http_'.$header);
-        return (array_key_exists($h , $_SERVER)) ? $_SERVER[$h] : null;
-    }
+   return ($file_count > 0); 
+ }
 
 
-    function has_files(){
-        return (count($_FILES)  >  0 );
-    }
+function getRequestMethod(){
+   $method = htmlspecialchars_decode($_SERVER['REQUEST_METHOD']);
+   if(in_array(strtoupper($method), ['POST' , 'GET' , 'PUT' , 'PATCH' , 'DELETE' , 'HEAD' , 'CONNECT'])) return $method;
+   throw new RuntimeException('Invalid Request method');
+}
 
 
-
-
-
+ function get_http_header(string $header_name){
+   $header = str_starts_with("HTTP_", strtoupper($header_name)) ? $header_name : "HTTP_".strtoupper(trim($header_name));
+   return isset($_SERVER[$header])? $_SERVER[$header] : null;
+ }
 
 
 }

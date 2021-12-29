@@ -66,15 +66,12 @@ class pluralize {
         $this->output = $word.'es';
         return;
       }
-      
+
       $this->output = $word.'s';
 
     }
 
-
-
   }
-
 
   function clean($word){
     return strtolower(trim($word,' '));

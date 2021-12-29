@@ -1,77 +1,23 @@
 <?php
 
 use web\libs\Router;
-// static assets base directory
-define('assets_dir' , 'wwwroot/');
-// view directory
-define('view_dir' , 'views/');
-// configure the base url to point to your application
-define('base_url','http://127.0.0.1/clean/');
-$router = new Router;
-// creating navigational url helper
-function app_url(string $name , array $params = null){
- return base_url . ltrim($name,'/'). ( !is_null($params) ?  implode('/' , $params) : '');
-}
-// register the router for the web application endpoints and apis
-// define your view engine
-function _template(string $name , array $data = [''] , callable $before = null , callable $after = null){
-    $view_resource =  APPDIR.WEBDIR.view_dir.str_replace('.',DIRECTORY_SEPARATOR,$name).'_html'.EXTENSION;
+use web\libs\Session;
 
-    if(file_exists($view_resource)){
-      if(!is_null($before)) call_user_func_array($before , $data);
-      extract($data);
-      include $view_resource;
-      if(!is_null($after)) call_user_func_array($after , $data);
-    }else{
-        include APPDIR.WEBDIR.view_dir. 'shared/errors/_template_not_found'.EXTENSION;
-    }
-}
-function _view(string $name , array $data = ['title' => 'app'] , callable $before = null ){
-    include_once APPDIR.WEBDIR.view_dir.'shared/_Layout_html'.EXTENSION;
-}
-// define your api response 
+define('base_url','http://127.0.0.1/'.app_name .'/');
 
-function respondWithJson($data,$headers = [],int $status ){
-    $response = json_encode($data);
-    foreach($headers as $h){  header($h);}
-    http_response_code($status);
-    echo $response;
-}
+$this->load_resources(['src/web/libs/helpers/constants' . extension , 'src/web/libs/helpers/functions'.extension]);
 
-function _asset(string $name ){
-    return base_url.APPDIR.WEBDIR.assets_dir.$name;
-}
-// start the application session
-session_start();
-// session vars
-$_SESSION['TempData'] = [];
+Session::initialize();
 
-if(isset($_SESSION['current_location_url'])){
-    $_SESSION['prev_location_url'] = $_SESSION['current_location_url'];
-    $_SESSION['current_location_url'] = $_SERVER['REQUEST_URI'];
-}else{
-    $_SESSION['current_location_url'] = $_SERVER['REQUEST_URI'];
-}
+$this->register(function($router){ require_once __ROUTE_REGISTER__; $router->run(); },[new Router]);
 
-function dump_session(){
-    echo "<pre>";
-    print_r($_SESSION);
-    echo "</pre>";
-    die;
-}
-function set_temp_data($key , $value){
-    $_SESSION['TempData'][$key] = $value;
-}
 
-function temp_data($key){
-    return array_key_exists($key,$_SESSION['TempData'])? $_SESSION['TempData'][$key] :null;
-}
 
-$this->register(function($router){
- 
- require_once  APPDIR.WEBDIR. 'routes_register'.EXTENSION;
- $router->run();
-},[$router]);
+
+
+
+
+
 
 
 

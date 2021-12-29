@@ -1,7 +1,7 @@
 {
     "host" : "localhost",
-    "database" : "",
+    "database" : "estate_manager_db",
     "password" :"",
-    "user":"",
+    "user":"root",
     "port" : ""
 }

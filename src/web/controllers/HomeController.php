@@ -1,6 +1,8 @@
 <?php
 namespace web\controllers;
 
+use infrastructure\database\migrations\migrator;
+use infrastructure\database\seeders\db_seeder;
 use kernel\controller;
 
 class HomeController extends _BaseController implements controller {
@@ -13,6 +15,24 @@ class HomeController extends _BaseController implements controller {
     function  index(){
         return _view('Home');
     }
+
+    function login(){
+        return _view('Login');
+    }
+
+    function register(){
+        return _view('Register');
+    }
+
+    function migrate(){
+        migrator::migrate();
+    }
+
+    public function seed(){
+        db_seeder::seedData();
+    }
+
+    
 
 
 }
