@@ -3,38 +3,88 @@ namespace infrastructure\database\specifications\Repositories;
 
 use core\aggregates\account;
 use core\aggregates\property;
+use core\aggregates\property_block;
 use core\aggregates\property_type;
 use core\aggregates\unit;
+use core\resources\property_resource;
 use infrastructure\database\specifications\Repository;
 
-class PropertyRepository extends Repository{
+class PropertyServiceRepository {
+
+    public Repository $properties_repo;
+
+    public Repository $units_repo;
+
+    public Repository $types_repo;
+
+    public Repository $blocks_repo;
 
 
-    function __construct()
+    public function __construct()
     {
-        parent::__construct(property::class);
+        $this->properties_repo = new Repository(property::class);
+
+        $this->units_repo = new Repository(unit::class);
+
+        $this->types_repo = new Repository(property_type::class);
+        
+        $this->blocks_repo = new Repository(property_block::class);
+
+    
     }
 
-
     function getById($id , account $account){
-        $sql = 'select properties.* , landlords.names  from  properties  inner join landlords  on properties.landlord_id = landlords.id where properties.id = :id  and landlords.user_id = :user_id ';
-        $this->conn->runOperation($sql,['id' => $id , "user_id" => $account->user_id]);
-        $results = $this->conn->results(property::class);
-        return count($results) > 0 ? $results[0] : null;
+        
+        $resource = $this->properties_repo->findByIdAsResource(property_resource::class , $id);
+
+        if($resource['landlord']['user_id'] != $account->user_id) return [];
+
+        return $resource;
     }
 
     
 
-    function countUnits($ids) : int {
-        if(count($ids) == 1 ){
-            $sql = 'SELECT COUNT(`id`) AS `matches` FROM `units` WHERE `property_id` = :property_id ';
-            $this->conn->runOperation($sql , ['property_id'=> $ids[0]]);
+    function count_units_in_properties(array $property_ids , $deleted = 0) : int {
+
+        $blocks = $this->get_property_blocks($property_ids);
+
+        if(count($blocks) == 0) return 0;
+
+        $block_ids = array();
+
+        foreach($blocks as $block) $block_ids[] = $block->id;
+        
+
+        if(count($block_ids) == 1){
+
+            return $this->units_repo->count(["block_id" => $block_ids[0] , "is_deleted" => $deleted ]);
+
         }else{
-            $sql = 'SELECT COUNT(`id`) AS `matches` FROM `units`  WHERE  `property_id` IN (.'.implode(',',$ids).'.) ';
-            $this->conn->runOperation($sql);
+
+            return $this->units_repo->count(['IN' => array(
+                'filter' => 'block_id',
+                'range' => $block_ids
+            ),
+            'is_deleted' => $deleted    
+        ]);
         }
-        $results = $this->conn->results();
-        return count($results) > 0 ? $results[0]['matches'] : 0;
+
+    }
+
+    public function get_property_blocks(array $property_ids , $deleted = 0 ){
+
+        if(count($property_ids) == 1) {
+
+            return $this->blocks_repo->find(['property_id' => $property_ids[0] , 'is_deleted' => $deleted]);
+        }
+
+        return $this->blocks_repo->find([
+            'IN' => array(
+                'filter' => 'property_id',
+                'range' => $property_ids
+            ),
+            'is_deleted' => $deleted
+        ]);
     }
 
     function getUnits($properties , bool $deleted = false){
@@ -70,7 +120,7 @@ class PropertyRepository extends Repository{
     
     public function getUnit(int $id):unit{
     
-        $sql = "SELECT * FROM `units` WHERE `id` = :id";
+        $sql = "SELECT `units`.* , `floors`.`floor_name` FROM `units`  INNER JOIN `floors`  ON `units`.`floor_id`  =  `floors`.`id` WHERE `units`.`id` = :id";
         $this->conn->runOperation($sql,['id' => $id]);
         $results = $this->conn->results(unit::class);
         return  !empty($results)? $results[0] : null; 

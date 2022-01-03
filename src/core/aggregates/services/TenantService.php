@@ -52,12 +52,12 @@ final class TenantService extends _BaseService {
 
             if(is_null($property)) throw new ServiceException(ServiceException::UNIT_NOT_ON_PROPERTY);
 
-             $landlord = $this->propertyService->landlordRepository->findById($property->id);
+             $landlord = $this->propertyService->landlordRepository->findById($property->landlord_id);
 
             if($unit->number_of_occupants ==  $unit->occupants_limit) throw new ServiceException(ServiceException::UNIT_AT_CAPACITY);
             
             
-            if($onBoardingSettings->security_deposit == true && $onBoardingSettings->allow_without_security == false) {
+            if($onBoardingSettings->security_deposit) {
                 // strict enforce of security rules
                 if(!isset($request->body->security_payment_ref)) throw new ServiceException("Provide the security payment reference");
                 // validate payment reference no
@@ -69,7 +69,7 @@ final class TenantService extends _BaseService {
             }
 
 
-           if($onBoardingSettings->payment_before_entry == true && $onBoardingSettings->allow_entry_before_payment == false){
+           if($onBoardingSettings->payment_before_entry){
                 // strict enforce payment before 
                 if(!isset($request->body->entry_deposit_ref)) throw new ServiceException("Provide the entry deposit payment reference");
 
@@ -112,41 +112,76 @@ final class TenantService extends _BaseService {
             $this->repository->saveChanges();
 
              
-            if($this->repository->last_insert_id()){
+            if(!$this->repository->last_insert_id()) throw new ServiceException(ServiceException::TENANT_NOT_SAVED); 
 
-                $tenant->id = $this->repository->last_insert_id();
-                 $unit->number_of_occupants = $unit->number_of_occupants + 1;
-                if($unit->number_of_occupants == $unit->occupants_limit) $unit->is_occupied = true;
-                 $this->repository->Add($unit);
-                 $landlord->tenants = $landlord->tenants + 1;
-                 $account->tenants = $account->tenants  + 1;
-                 $this->repository->Add($landlord);
-                 $this->repository->Add($account);
-                 $this->repository->saveChanges();
+            $tenant->id = $this->repository->last_insert_id();
 
-                 if($this->repository->rows_affected()){
+            if(isset($request->body->has_custom_fields) && isset($request->body->custom_field_value) && count($request->body->custom_field_name) > 0 ){
 
-                    if($request->body->has_custom_fields){
-                        $fields = $this->settingsService->getCustomFields(tenant::class , $account);
-                        $values = get_object_vars($request->body);
-                        foreach($fields as $field){
-                            $this->settingsService->saveCustomValue(tenant::class , $tenant->id , $field, $values[strtolower(str_replace(" ","_",$field->name))]);                
-                           }
-                       }
+                $save_fields = [];
 
-                     return true;
-                 }else{
-                     $this->repository->data = [];
-                     $this->repository->Add($tenant);
-                     $this->repository->delete();
-                     
-                     
-                     throw new ServiceException(ServiceException::TENANT_NOT_SAVED );
-                 }
-            }else{
+                $error_occurred = false;
 
-                throw new ServiceException(ServiceException::TENANT_NOT_SAVED );
+
+                for($i=0;$i<count($request->body->custom_field_name); $i++){
+
+                    $data = array(
+                        'model' => tenant::class,
+                        'id' => $tenant->id,
+                        'value' => $request->body->custom_field_value[$i],
+                        'name' => $request->body->custom_field_name[$i],
+                        'type' => $request->body->custom_field_type[$i],
+                    );
+
+                    $saved = $this->saveCustomField((object)$data);
+
+                    if(is_array($saved)){
+
+                        $error_which_occurred = $saved['info'];
+
+                        !$error_occurred;
+
+                        break;
+
+                    }else{
+
+                        $save_fields[] = $saved;
+                    }
+
+
+                }
+
+                if($error_occurred){
+
+                   if(count($save_fields) > 0) $this->settingsService->settingsRepository->deleteCustomFields($save_fields);
+
+                   $this->repository->data[] = $tenant;
+
+                   $this->repository->delete();
+
+                   throw new ServiceException($error_which_occurred);
+                }
+
             }
+
+            $unit->number_of_occupants = $unit->number_of_occupants + 1;
+
+            if($unit->number_of_occupants == $unit->occupants_limit) $unit->is_occupied = true;
+                 
+            $this->repository->Add($unit);
+                
+            $landlord->tenants = $landlord->tenants + 1;
+                
+            $account->tenants = $account->tenants  + 1;
+                
+            $this->repository->Add($landlord);
+                
+            $this->repository->Add($account);
+                 
+            $this->repository->saveChanges();
+
+            return true;
+            
         }catch(ServiceException $exception){
             return $exception->errorMessage();
         }

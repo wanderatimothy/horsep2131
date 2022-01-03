@@ -2,9 +2,7 @@
 
 namespace  infrastructure\database\seeders;
 
-use core\aggregates\field;
 use core\aggregates\floor;
-use core\aggregates\on_boarding_rule;
 use core\aggregates\property_type;
 use core\aggregates\subscription_type;
 use infrastructure\database\seeders\seeder;
@@ -54,30 +52,6 @@ final class db_seeder {
 
     $data[] = $prop_type1;
     $data[] = $prop_type2;
-
-
-
-    $field1 = new field();
-    $field1->type = "text";
-    $field1->maxLength = "150";
-    $field1->minimum = 0;
-    $field1->maximum = 0;
-
-    $field2 = new field();
-    $field2->type = "number";
-    $field2->maxLength = "150";
-    $field2->minimum = 0;
-    
-    $field3 = new field();
-    $field3->type = "date";
-    $field3->maxLength = "150";
-    $field3->minimum = 0;
-    $field3->maximum = 0;
-
-    $data[] = $field1;
-    $data[] = $field2;
-    $data[] = $field3;
-
 
     $floor1 =  new floor();
     $floor1->floor_name = "N/A";

@@ -18,13 +18,6 @@ class SettingsRepository extends Repository  {
         parent::__construct(renting_mode::class);
     } 
 
-    public function getFieldType($id){
-        $sql = 'select * from fields where id = :id';
-        $this->conn->runOperation($sql,['id' => $id]);
-        return $this->conn->results(field::class)[0];
-
-    }
-
     public function renting_modes(account $account , int $deleted = 0){
         $sql = 'select * from renting_modes where account_id = :account_id and is_deleted = :deleted';
         $this->conn->runOperation($sql,['account_id' => $account->id ,"deleted" => $deleted]);
@@ -60,11 +53,24 @@ class SettingsRepository extends Repository  {
         return $this->conn->results(on_boarding_rule::class)[0];
     }
 
-    public function getCustomFields($model , account $account , $deleted = 0){
-        $sql = "select cf.* , f.type,f.minimum,f.maximum,f.maxLength from custom_fields cf inner join fields f on cf.field_id = f.id  where cf.account_id = :account_id and cf.model = :model  ";
-        $this->conn->runOperation($sql,['account_id' => $account->id ,"model" => $model ]);
+    public function getCustomFields($model , $id , $deleted = 0){
+        $sql = 'select * from custom_fields where model = :model and model_id = :id and is_deleted = :deleted';
+        $this->conn->runOperation($sql,['id' => $id ,"model" => $model , "deleted" => $deleted ]);
         return $this->conn->results(custom_field::class);
 
+    }
+
+    public function deleteCustomFields($ids){
+        if(count($ids) > 1) {
+            $sql = "delete from custom_fields where id between (".implode(",",$ids).")";
+
+            $this->conn->runOperation($sql);
+
+        }else{
+            $sql = "delete from custom_fields where id = :id";
+            $this->conn->runOperation($sql,['id' => $ids[0]]);
+        }
+        
     }
 
 }

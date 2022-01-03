@@ -1,6 +1,10 @@
 <?php
 
-use web\libs\Session;  ?>
+use web\libs\Session;  
+
+$vm = $data['vm'];
+
+?>
 <?php _template('_sidebar', ['active' => 'properties']); ?>
 <main class="main-content position-relative max-height-vh-100 h-100 mt-1 border-radius-lg ">
     <!-- Navbar -->
@@ -120,72 +124,7 @@ use web\libs\Session;  ?>
     </div>
 </div>
 <!-- modal -->
-
-<!-- property modal -->
-<div class="modal" data-bs-backdrop="static" data-bs-keyboard="false" id="createProperty" tabindex="-1">
-    <div class="modal-dialog modal-dialog-scrollable  modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-gradient-info">
-                <h5 class="modal-title text-uppercase text-white">Add Property</h5>
-                <button type="button" class="btn-close" aria-label="Close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form action="<?= app_url('api/property') ?>" method="POST" id="property_form">
-                    <div id="property_form_feedback"></div>
-                    <div class="row justify-content-around">
-                        <div class="col-md-4 col-lg-4 form-group">
-                            <label class="form-label" for="label">Property Name</label>
-                            <input type="text" name="label" class="form-control rounded-5 " id="p_name" placeholder="Label">
-                            <span id="label_error" class="text-danger error-feedback"></span>
-                        </div>
-                        <div class="col-md-4 col-lg-4 form-group">
-                            <label class="form-label" for="location">Location</label>
-                            <input type="text" name="location" class="form-control rounded-5 " id="p_contact" placeholder="Location">
-                            <span id="location_error" class="text-danger error-feedback"></span>
-                        </div>
-                        <div class="col-md-4 col-lg-4 form-group">
-                            <label class="form-label" for="type">Type</label>
-                            <select name="type" class="form-select form-control" id="property-types">
-                                <option value="">Choose</option>
-                            </select>
-                            <span id="type_error" class="text-danger error-feedback"></span>
-                        </div>
-                    </div>
-                    <div class="row justify-content-around">
-                        <div class="col-md-4 col-lg-4 form-group">
-                            <label class="form-label" for="type">Landlord</label>
-                            <select name="landlord_id" class="form-select form-control" id="select-landlord">
-                                <option value="">Choose</option>
-                            </select>
-                            <span id="landlord_id_error" class="text-danger error-feedback"></span>
-                        </div>
-                        <div class="col-md-4 col-lg-4 form-group">
-                            <label class="form-label" for="type">Has Units</label>
-                            <select name="has_units" class="form-select form-control" id="p_has_units">
-                                <option selected value="1">Yes</option>
-                                <option value="0">No</option>
-                            </select>
-                            <span id="has_units_error" class="text-danger error-feedback"></span>
-                        </div>
-                        <div class="col-md-4 col-lg-4 form-group">
-                            <label class="form-label" for="location">Rent Amount</label>
-                            <input type="number" name="rent_amount" min="0" max="5000000"  class="form-control rounded-5" id="p_rent" placeholder="Rent Amount">
-                            <span id="rent_amount_error" class="text-danger error-feedback"></span>
-                        </div>
-                    </div>   
-                    <?php _template('pages.mgt.components.custom_field' , $data); ?>
-                    <div class="d-flex justify-content-center">
-                        <button type="submit" id="p_submit_btn" class="btn btn-dark  w-75">Save <i class="bi bi-save"></i> </button>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn bg-gradient-info btn-sm" data-bs-dismiss="modal">close</button>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- property modal -->
+<?php _template("Pages.mgt.forms.add_property")  ?>
 
 <!-- landlords view -->
 <div class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" id="viewLandlords">
@@ -293,7 +232,7 @@ use web\libs\Session;  ?>
         {
             url:base_url+'api/properties',
             token:_token 
-        },function(){
+        },function(data){
             document.querySelectorAll('.delete-btn').forEach((node)=>{
                 node.addEventListener('click',e=>{
                     let el = e.target
@@ -314,6 +253,7 @@ use web\libs\Session;  ?>
         property_types.init()
         select_landlord.init();
         properties_table.init();
+
         select_landlord.useDataSetToDoSomething(function(dataSet){
            var el = 'landlords-list';
            var root_element = document.getElementById(el)
@@ -439,5 +379,17 @@ use web\libs\Session;  ?>
                 error:(error)=>console.log(error)
             }
         })
+
+
+
+        //custom field creator
+
+        new customFieldCreator({
+            triggerElement:'add_custom_field',
+            containerElement:'custom_field_container'
+        })
+
+        // custom field creator
+        
     });
 </script>

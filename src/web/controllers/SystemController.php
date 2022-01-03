@@ -10,6 +10,9 @@ use core\aggregates\services\TokenService;
 use core\aggregates\tenant;
 use kernel\controller;
 use web\libs\Session;
+use web\models\propertiesPageViewModel;
+use web\models\propertyViewModel;
+use web\models\UnitViewModel;
 
 class SystemController extends _BaseController implements controller{
 
@@ -62,7 +65,9 @@ class SystemController extends _BaseController implements controller{
 
     public function properties(){
 
-        return _view('pages.Properties',['custom_property_fields' => $this->SettingsService->settingsRepository->getCustomFields(property::class,$this->account) ] );
+        $vm = new propertiesPageViewModel();
+
+        return _view('pages.Properties',["vm" => $vm] );
     }
 
     public function tenants(){
@@ -72,15 +77,31 @@ class SystemController extends _BaseController implements controller{
     public function manage_property($id){
 
         $data = $this->PropertyService->repository->getById($id , $this->account);
-        $addon_types = $this->PropertyService->addOnTypes();
-        $custom_tenant_fields = $this->SettingsService->getCustomFields(tenant::class,$this->account);
-        $onboarding_rules = $this->SettingsService->settingsRepository->getOnBoardingRules($this->account);
+
         if(is_null($data)) _redirect('properties');
-        return _view('pages.mgt.Manage_Property',['property' => $data , "add_on_types" => $addon_types , "custom_tenant_fields" => $custom_tenant_fields , 'onboarding_rules' => $onboarding_rules]);
+
+        $vm = new propertyViewModel($data,$this->account);
+
+        return _view('pages.mgt.Manage_Property',["vm" => $vm]);
+    }
+
+    public function manage_unit($property,$unit){
+
+        $property = $this->PropertyService->repository->getById($property , $this->account);
+
+        if(is_null($property)) return _view('pages.mgt.Not_Found',['message' => 'Unit does not exist !']);
+
+        $unit_model = $this->PropertyService->repository->getUnit($unit);
+
+        if(is_null($unit_model)) return _view('pages.mgt.Not_Found',['message' => 'Unit does not exist !']);
+        
+        if($unit_model->property_id != $property->id) return _view('pages.mgt.Not_Found',['message' => 'Unit does not exist !']);
+
+        $vm = new UnitViewModel($unit_model , $property , $this->PropertyService );
+
+        return _view('pages.mgt.Manage_Unit',["vm" => $vm]);
     }
 
 
-    public function settings(){
-        return _view('pages.Settings',['fields' => $this->SettingsService->allFields() , 'periods' => $this->SettingsService->timePeriods() , 'enforcements' => $this->SettingsService->enforcements() ]);
-    }
+
 }

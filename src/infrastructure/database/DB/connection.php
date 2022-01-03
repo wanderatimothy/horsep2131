@@ -11,6 +11,8 @@ class connection  implements IConnection{
 
     private PDOStatement $pdo_statement;
 
+    public $debug_mode_on =  true;
+
     public $affected_rows; 
 
     public $last_insert_id;
@@ -19,11 +21,7 @@ class connection  implements IConnection{
 
     public $last_error;
 
-    // public Logger $logger;
-
-    public function __construct(){
-        // $this->logger = new Logger('db_actions_log.log','db_action_log');
-    }
+ 
 
     function connect(){
         $configs = $this->get_db_config();
@@ -32,7 +30,7 @@ class connection  implements IConnection{
           $connection = new PDO($dns,$configs->user,$configs->password);
           return $connection;
         }catch(PDOException $e){
-            // $this->logger->log()->error( $e->getMessage(). '\n');
+            if($this->debug_mode_on) debug_dump([$configs, $e->getMessage() ]);
             die;
         }
     }
@@ -44,7 +42,9 @@ class connection  implements IConnection{
             $configs = json_decode($data);
             return $configs;
         }catch(Exception $e){
-            // $this->logger->log()->error( $e->getMessage(). '\n');
+
+            if($this->debug_mode_on) debug_dump([$e->getMessage() ]);
+
             return (object) ['host' => 'undefined' , 'database' => 'undefined', 'user'=>'undefined' , 'password' => 'undefined' , 'port' => 'undefined' ];
         }
     }
@@ -53,6 +53,7 @@ class connection  implements IConnection{
     function runOperation($sql,array $parameters = null){
 
         $c = $this->connect();
+
         try{
             if(is_null($parameters)){
 
@@ -72,9 +73,9 @@ class connection  implements IConnection{
 
         }catch(PDOException $e){
             $this->last_error = $c->errorInfo();
-            debug_dump([$e->getMessage() , $sql , $parameters]);
-            // $this->logger->log()->error( $e->getMessage(). '\n');
-            // $this->logger->log()->error('query :: '.$sql . '\n');
+
+            if($this->debug_mode_on) debug_dump([$sql , $parameters , $e->getMessage() ]);
+
             return false;
         }
        
@@ -82,11 +83,16 @@ class connection  implements IConnection{
 
 
     function results(string $class = null){
+
         if(is_null($class)) return $this->pdo_statement->fetchAll(PDO::FETCH_ASSOC);
+
         $resultSet = array();
+
         while ( $row = $this->pdo_statement->fetchObject($class)){
+
             $resultSet[] =  $row;
         }
+
         return $resultSet;
     }
 

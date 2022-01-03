@@ -16,13 +16,15 @@ class property extends model {
 
     public string $location = '';
 
+    public $blocks = 0;
+
     public float $rent_amount = 0.00;
 
     public int $allowed_occupants = 0;
 
-    public bool $has_units = false;
+    public  $has_units = true;
 
-    public bool $softdeletes_on = true;
+    public  $softdeletes_on = true;
 
     public bool $timestamps_on = true;
 

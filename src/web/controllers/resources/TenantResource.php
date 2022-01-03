@@ -66,4 +66,23 @@ class TenantResource extends _BaseResource implements IResource{
         $data = $this->tenantService->repository->tenantsOnProperty($property->id,0);
         return respondWithJson($data , ['content-type:application/json'] ,200);
     }
+
+    public function TenantsInUnit($property,$unit){
+
+        if(!ctype_digit($unit)) return respondWithJson([] , ['content-type:application/json'] ,200);
+
+        $property = $this->PropertyService->repository->getById($property , $this->account);
+
+        if(is_null($property)) return respondWithJson([] , ['content-type:application/json'] ,200);
+
+        $unit_model = $this->PropertyService->repository->getUnit($unit);
+
+        if(is_null($unit_model)) return respondWithJson([] , ['content-type:application/json'] ,200);
+        
+        if($unit_model->property_id != $property->id) return respondWithJson([] , ['content-type:application/json'] ,200);
+
+        $data = $this->tenantService->repository->getTenantsFrom($unit);
+        
+        return respondWithJson($data , ['content-type:application/json'] ,200);
+    }
 }

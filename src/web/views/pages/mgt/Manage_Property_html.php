@@ -2,6 +2,8 @@
 
 use web\libs\Session;
 
+$vm = $data['vm'];
+
 _template('_sidebar' , ['active' => 'properties']); ?>
 <main class="main-content position-relative max-height-vh-100 h-100 mt-1 border-radius-lg ">
     <!-- Navbar -->
@@ -10,14 +12,14 @@ _template('_sidebar' , ['active' => 'properties']); ?>
     <div class="container-fluid py-4">
         <div class="row justify-content-between align-items-end">
             <div class="col-md-4 col-sm-6 col-lg-3 my-2">
-                <h4><?= $data['property']->property_label ?></h4>
+                <h4 class="text-uppercase"><?=$vm->details->property_label?></h4>
             </div>
             <div class="col-md-8 col-sm-12 col-lg-9 d-flex justify-content-end">
                  <button type="button" id="u_add_btn" class="btn bg-gradient-info btn-sm mx-1" data-bs-toggle="modal" data-bs-target="#createUnit">Add Unit</button>
                  <button type="button" id="t_add_btn" class="btn bg-gradient-info btn-sm mx-1" data-bs-toggle="modal" data-bs-target="#createTenant">Add Tenant</button>
                  <button type="button" id="p_assign_manager_btn" class="btn bg-gradient-info btn-sm mx-1" data-bs-toggle="modal" data-bs-target="#assignManager">assign manager</button>
                  <button type="button" id="p_delete_btn" class="btn bg-gradient-danger btn-sm mx-1" data-bs-toggle="modal" data-bs-target="#deleteProperty">Delete</button>
-                 <button type="button" id="p_reload" class="btn bg-gradient-secondary btn-sm mx-1" ><i class="bi bi-arrow-repeat"></i>Reload</button>
+                 <button type="button" id="data_reload_button" class="btn bg-gradient-secondary btn-sm mx-1" ><i class="bi bi-arrow-repeat"></i>Reload</button>
             </div>
         </div>
         <div class="row">
@@ -29,7 +31,7 @@ _template('_sidebar' , ['active' => 'properties']); ?>
                                 <div class="numbers">
                                     <p class="text-sm mb-0 text-capitalize font-weight-bold">Expectation</p>
                                     <h5 class="font-weight-bolder mb-0">
-                                        shs <?=$data["property"]->rent_amount?>
+                                        shs <?=$vm->details->rent_amount?>
                                         <span class="text-info text-sm font-weight-bolder">0%</span>
                                     </h5>
                                 </div>
@@ -50,9 +52,8 @@ _template('_sidebar' , ['active' => 'properties']); ?>
                             <div class="col-8">
                                 <div class="numbers">
                                     <p class="text-sm mb-0 text-capitalize font-weight-bold">Tenants</p>
-                                    <h5 class="font-weight-bolder mb-0" id="t_tile">
-                                        0
-                                    </h5>
+                                    <p class="fw-bold text-muted ps-1 h5" id="tenants-table-counter"></p>
+
                                 </div>
                             </div>
                             <div class="col-4 text-end">
@@ -71,9 +72,7 @@ _template('_sidebar' , ['active' => 'properties']); ?>
                             <div class="col-8">
                                 <div class="numbers">
                                     <p class="text-sm mb-0 text-capitalize font-weight-bold">Units</p>
-                                    <h5 id="p_units_tile" class="font-weight-bolder mb-0">
-                                        0
-                                    </h5>
+                                    <p class="fw-bold text-muted ps-1 h5" id="units-table-counter"></p>
                                 </div>
                             </div>
                             <div class="col-4 text-end">
@@ -112,26 +111,11 @@ _template('_sidebar' , ['active' => 'properties']); ?>
             <div class="col-lg-8 col-md-6 mb-md-0 mb-4">
                 <div class="card">
                     <div class="card-header pb-0">
-                        <div class="row">
-                            <div class="col-lg-6 col-7">
-                                <h6>Tenants</h6>
-                            </div>
-                        </div>
+                        <h5>Tenants</h5>
                     </div>
                     <div class="card-body px-0 pb-3">
                         <!-- <div class="table-responsive"> -->
-                            <table class="table text-center align-items-center mb-2">
-                                <thead>
-                                    <tr>
-                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Names</th>
-                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Contact</th>
-                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Unit</th>
-                                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="t_table">
-
-                                </tbody>
+                            <table id="tenants-table" class="table text-center align-items-center mb-2">
                             </table>
                         <!-- </div> -->
                     </div>
@@ -165,32 +149,14 @@ _template('_sidebar' , ['active' => 'properties']); ?>
             <div class="col-lg-12 col-md-12 mb-md-0 mb-4">
                 <div class="card">
                     <div class="card-header pb-0">
-                        <div class="row">
-                            <div class="col-lg-6 col-7">
-                                <h6>Units</h6>
-                            </div>
-                        </div>
+                        <div class="col-lg-6 col-7">
+                            <h5>Units</h5>
+                        </div>  
                     </div>
                     <div class="card-body px-0 pb-3">
                         <div class="table-responsive">
-                            <table class="table align-items-center mb-2 ">
-                                <thead>
-                                    <tr>
-                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">No.</th>
-                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Label</th>
-                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Floor</th>
-                                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Rooms</th>
-                                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Rent Amount</th>
-                                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Status</th>
-                                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Facilities</th>
-                                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Self Contained</th>
-                                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Occupants</th>
-                                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="units_table" >
-
-                                </tbody>
+                            <table id="units-table" class="table align-items-center mb-2 ">
+                                
                             </table>
                         </div>
                     </div>
@@ -222,257 +188,291 @@ _template('_sidebar' , ['active' => 'properties']); ?>
     </div>
 </div>
 
-<!-- modals -->
-<?php _template('pages.mgt.forms.add_unit',['property' => $data['property']->id])  ?>
-<?php _template('pages.mgt.forms.add_tenant' ,$data )  ?>
+<?php
+ _template('pages.mgt.forms.add_tenant');
 
-<!-- modals -->
+ _template('pages.mgt.forms.add_unit',['property' => $vm->details->id]);
 
-<?php _template('_core_scripts') ?>
+ _template('_core_scripts'); 
+ ?>
 
 <script>
 
-    $(document).ready(function(){
-        
-        var addon_btn = $('#u_addon_btn_add');
-        var u_add_btn = $("#u_add_btn");
-        var u_add_form = $('#u_form');
-        var u_floors = $('#u_floors');
-        var addon_container = $("#u_addon_container");
-        var tenant_photo_upload = $("#tenant_photo_upload");
-        var upload_preview = $("#upload_preview_area");
+    var token = "<?= Session::get("_TOKEN")?>"
+    var base_url = "<?=app_url("")?>";
+    var property = <?= $vm->details->id ?>
+</script>
+<script>
+    $(document).ready(()=>{
 
-        var rows = 0;
-        let _token = '<?= Session::get('_TOKEN') ?>'
-        $("#u_start_index").hide();
-        $("#u_number_to_generate").hide();
-
-        tenant_photo_upload.on('change',e => {
-           var file = e.target.files[0]
-           upload_preview.empty();
-           upload_preview.append(`<img src="${URL.createObjectURL(file)}"  class="img img-thumbnail" width="200" height="150" />`);
-        })
-
-        function loadTenants(update = false){
-            if(update){
-                $.notify("Updating Tenants information " , 'success')
-            }
-            asyncResourcesFetch('<?=app_url('api/property/'.$data['property']->id.'/tenants')?>',(data)=>{
-            $("#t_table").empty();
-            dataRows = data.data;
-            if(dataRows.length == 0){
-                ("#t_table").append(`<tr><td colspan="4" class="text-center">No tenants on this property</td></tr>`)
-            }else{
-                $("#t_tile").html(`${dataRows.length}`)
-                $('#t_table').empty();
-                dataRows.forEach((item,index) => {
-                    $("#t_table").append(`
-                        <tr class="text-center">
-                            <td>${item.names}</td>
-                            <td>${item.contact}</td>
-                            <td>${item.label}</td>
-                            <td>
-                            <div class="dropdown">
-                               <button type="button" data-bs-toggle="dropdown" class="btn  fw-bold bg-gradient-info" ><i class="bi bi-three-dots-vertical"></i></button>
+    const tenantTable = new Table(
+        [
+            {
+                title : 'No.',
+                name:'id',
+                data:(data,index) => ++ index
+                
+            },
+            {
+                title:'Name',
+                name : 'names',
+                data:null
+            },
+            {
+                title:'Contact',
+                name:'contact',
+                data:null,
+            },
+            {
+                title:'Rental Unit',
+                name:'label',
+                date:null
+            },
+            {
+                title:'Action',
+                name:'',
+                data:(data,index) => {
+                    return `<div class="dropdown">
+                                <button data-bs-toggle="dropdown" type="button" class="btn btn-sm btn-info">menu</button>
                                 <div class="dropdown-menu">
-                                   <div class="dropdown-item" >
-                                        <a href="#"><i class="bi bi-eye text-info"></i> <span class="ms-1">View</span></a>
-                                   </div>
-                                   <div  class="dropdown-item">
-                                        <a><i class="bi bi-envelope text-info"></i> <span class="ms-1">Message</span></a>
-                                   </div>
-                                   <div class="dropdown-item">
-                                        <a href=""><i class="bi bi-pencil-square text-info"></i> <span class="ms-1">Edit</span></a>
+                                    <div class="dropdown-item">
+                                      <a href="${base_url}api/tenant/${data.id}" > <i class="bi bi-eye me-1"></i> View </a>
+                                    </div>
+                                    <div class="dropdown-item">
+                                      <a href=""><i class="bi bi-pencil-square text-info"></i> <span class="ms-1">Edit</span></a>
                                    </div>
                                    <div class="dropdown-item">
-                                        <a href=""><i class="bi bi-trash text-danger"></i> <span class="ms-1">Delete</span></a>
-                                   </div>
-                                </div>
-                             </div>
-                            </td>
-                        </tr>
-                    `)
-                })
+                                     <a href="javascript:void;" data-bs-toggle="modal" data-bs-target="#delete-tenant" data-delete="${data.id}" data-object-type="tenant" class="delete-btn" ><i class="bi bi-trash text-danger me-1"></i>Delete</a>
+                                 </div>
+                            </div>
+                        </div>
+                     `
+                }
             }
-        },_token);
-        }
-        
-        function loadUnits(update = false){
-            if(update){
-                $.notify("Updating units information " , 'success')
-            }
-            asyncResourcesFetch('<?=app_url('api/property/'.$data['property']->id .'/units')?>',(data)=>{
-                $('#units_table').empty();
-                $('#t_available_units').empty();
-                dataRows = data.data;
-                $("#p_units_tile").html(`${dataRows.length}`)
-                dataRows.forEach((item , $index)=>{
-                    if(item.is_occupied == false){
-                        $("#t_available_units").append(`
-                             <option value="${item.id}" >${item.label}</option>
-                        `);
-                    }
+        ],
+        "tenants-table",
+        {
+            token :token,
+            url : base_url + 'api/property/'+ property + '/tenants'
+        },
+        null
+    )
+
+    const unitsTable = new Table(
+        [
+            
+            {
+                title : 'No.',
+                name:'id',
+                data:(data,index) => ++ index
+                
+            },
+            {
+                title : 'Label',
+                name:'label',
+                data:null,
+            },
+            {
+                title : 'Floor',
+                name:'floor_name',
+                data:null,         
+            },
+            {
+                title : 'Status',
+                name:'id',
+                data: (data , index ) => {
                     
+                    let { occupants_limit , number_of_occupants , is_occupied } = data
+                    
+                    if( occupants_limit ==  1  && is_occupied == 1 ) return `<span class="text-success fw-bold ">Occupied</span>`
 
-                    $('#units_table').append(`
-                      <tr class="text-center" >
-                        <td>${ ++ $index }</td>
-                        <td>${item.label}</td>
-                        <td>${item.floor_name}</td>
-                        <td>${item.rooms}</td>
-                        <td>${item.rent_amount}</td>
-                        <td>${item.is_occupied == 0 ? '<span class="fw-bold text-danger">VACANT</span>' : '<span class="fw-bold"> OCCUPIED </span>' }</td>
-                        <td>${item.facilities}</td>
-                        <td>${item.self_contained ?  'Yes' : 'No'}</td>
-                        <td>${item.occupants_limit}</td>
-                        <td>
-                            <div class="dropdown">
-                               <button type="button" data-bs-toggle="dropdown" class="btn  fw-bold bg-gradient-info" ><i class="bi bi-three-dots-vertical"></i></button>
+                    if(occupants_limit > 1  && number_of_occupants != 0 && (number_of_occupants != occupants_limit) ) return `<span class="text-info fw-bold ">Occupied with ${ occupants_limit - number_of_occupants}  ${ (occupants_limit - number_of_occupants) ==  1  ? 'vacancy' : 'vacancies' } </span>`
+
+                    if(occupants_limit == 1 && is_occupied == 0 ) return `<span class="text-warning fw-bold ">Vacant</span>`
+                   
+                    if(occupants_limit > 1  && number_of_occupants == 0 ) return `<span class="text-warning fw-bold ">Vacant</span>`
+
+                }
+                
+            },
+
+            {
+                title : 'Rent Amount',
+                name :'rent_amount',
+                data:(data,index) => (data.rent_amount).toLocaleString('en-us')
+            },
+            {
+                title: 'Action',
+                name:'',
+                data: (data,index) => {
+                    return `<div class="dropdown">
+                                <button data-bs-toggle="dropdown" type="button" class="btn btn-sm btn-info">menu</button>
                                 <div class="dropdown-menu">
-                                   <div class="dropdown-item" >
-                                        <a href="property/${item.property_id}unit/${item.id}">Manage</a>
-                                   </div>
+                                    <div class="dropdown-item">
+                                      <a href="${base_url}property/${property}/unit/${data.id}" > <i class="bi bi-gear me-1"></i>Manage</a>
+                                    </div>
                                    <div class="dropdown-item">
-                                        <a href=""><i class="bi bi-pencil-square text-info"></i> <span class="me-1">Edit</span></a>
-                                   </div>
-                                   <div class="dropdown-item">
-                                        <a href=""><i class="bi bi-trash text-danger"></i> <span class="me-1">Delete</span></a>
-                                   </div>
-                                </div>
-                             </div>
-                        </td>
-                      </tr>
-                    `);
-                })
-            },_token)
-        }
-        function Reload(){
-          loadTenants(true);
-          loadUnits(true);
-        }
-        
-        
-        loadTenants();
-        loadUnits();
+                                     <a href="javascript:void;" data-bs-toggle="modal" data-bs-target="#delete-tenant" data-delete="${data.id}" data-object-type="tenant" class="delete-btn" ><i class="bi bi-trash text-danger me-1"></i>Delete</a>
+                                 </div>
+                            </div>
+                        </div>
+                     `
+                }
+            }
 
-        
 
-        handleClick($('#p_reload'),event=>{
-            if(window.confirm("Action causes reloading of the data any unsaved changes will be lost")){
-                Reload();
+        ],
+        'units-table',
+        {
+            token :token,
+            url : base_url + 'api/property/'+ property + '/units'
+        },
+        (data) => {
+            // use dataset to create select options
+            let el = document.getElementById('units_select')
+            RemoveAllChildren(el)
+            if(data.length == 0 ){
+                let option = document.createElement('option')
+                    option.value = row.id
+                    option.textContent = 'No units available'
+                    el.appendChild(option) 
+                    return
+            }
+            data.forEach((row) => {
+                if( row.occupants_limit > row.number_of_occupants )
+                {   let option = document.createElement('option')
+                    option.value = row.id
+                    option.textContent = row.label
+                    el.appendChild(option)
+                }
+            })
+        }
+    )
+
+    var floorOptions = new Select('floor_selection', {
+        key : 'floor_name',
+        value: 'id'
+    },{
+        token : token,
+        url : base_url + 'api/floors'
+    })
+
+    // floor initialization
+    floorOptions.init()
+
+    // table initialization
+    
+    unitsTable.init()
+
+
+    tenantTable.init()
+
+
+    // table initialization
+
+    // unit form configuration
+        new ApplicationForm({
+            element : 'units_form',
+            loader : ()=>{
+                return `<div class="d-flex align-items-center">
+                            <strong>Processing....</strong>
+                            <div class="spinner-border ms-auto text-info" role="status" aria-hidden="true" ></div>
+                        </div>
+                        `
+            },
+            messages:{
+                success : {
+                    expectedStatusCode : 201,
+                    text: `<div class="alert alert-success alert-dismissible" role="alert">
+                                 <strong>Success!</strong> operation was successful
+                                 <button type="button" class="btn-close" data-bs-dismiss="alert">&times;</button>
+                            </div>`
+                },
+                failure: 'Operation was unsuccessful.'
+            },
+            headers:{
+                'Authentication':token
+            },
+            callbacks:{
+                success:(data)=>{
+                    unitsTable.update()
+                },
+                error:(error)=>console.log(error)
             }
         })
-        handleClick(u_add_btn , function(event){
-         asyncResourcesFetch('<?=app_url('api/floors')?>' ,(data)=>{
-             u_floors.empty();
-                 data.data.forEach((item , $index) => {
-                  u_floors.append(`<option value ="${item.id}">${item.floor_name}</option>`)    
-                 })
-         }, _token)
-        });
-        handleClick($('#u_auto_generate'),e => {
-            var checkbox = document.getElementById('u_auto_generate');
-            if(checkbox.checked){
-                $("#u_start_index").show();
-                $("#u_number_to_generate").show();
-            }else{
-                $("#u_start_index").hide();
-                $("#u_number_to_generate").hide();
-            } 
+               
+    // unit form configuration
+
+    // tenant form configuration
+        new ApplicationForm({
+            element : 'tenants_form',
+            loader : ()=>{
+                return `<div class="d-flex align-items-center">
+                            <strong>Processing....</strong>
+                            <div class="spinner-border ms-auto text-info" role="status" aria-hidden="true" ></div>
+                        </div>
+                        `
+            },
+            messages:{
+                success : {
+                    expectedStatusCode : 201,
+                    text: `<div class="alert alert-success alert-dismissible" role="alert">
+                                 <strong>Success!</strong> operation was successful
+                                 <button type="button" class="btn-close" data-bs-dismiss="alert">&times;</button>
+                            </div>`
+                },
+                failure: 'Operation was unsuccessful.'
+            },
+            headers:{
+                'Authentication':token
+            },
+            callbacks:{
+                success:(data)=>{
+                    tenantTable.update()
+                    unitsTable.update()
+                },
+                error:(error)=>console.log(error)
+            }
+        })
+               
+    // tenant form configuration
+
+    // Reload action 
+
+    document.getElementById('data_reload_button').addEventListener('click',(event) => {
+        if(window.confirm('This action will result into reloading of all data')){
+            unitsTable.update();
+            tenantTable.update();
+        }
+    })
+
+    // data reload action
+
+     //custom field creator
+
+     new customFieldCreator({
+            triggerElement:'tenant_form_add_custom_field',
+            containerElement:'tenant_form_custom_field_container'
         })
 
-        handleClick(addon_btn , function(event){
-            var html_template = `
-            <div class="row align-items-end " id="row_${++rows}">
-                <div class="form-group col-lg-2 col-md-3  px-1">
-                    <label for="addon-type" class="form-label" >Addon Type</label>
-                    <select class="form-select form-control" name="addon_type_id[]">
-                        <option value="" selected >Choose</option>
-                        <?php foreach ($data['add_on_types'] as $type ) echo "<option value='".$type->id."'>".$type->type_name."</option>"  ?>
-                    </select>
-                </div>
-                <div class="form-group col-lg-3 col-md-3 px-1">
-                    <label for="addon-name" class="form-label" >Addon Name</label>
-                    <input type="text" name="addon_name[]" placeholder="i.e electricity , water , garbage ...etc" class="form-control" />
-                </div>
-                <div class="form-group col-lg-3 col-md-3 px-1">
-                    <label for="addon-name" class="form-label" >Addon Charge</label>
-                    <input type="number" name="addon_cost[]" min="0" max="10000000" placeholder"Amount" class="form-control" />
-                </div>
-                <div class="form-group col-lg-2 col-md-2 px-1">
-                    <label for="addon-name" class="form-label" >Meter (Optional)</label>
-                    <input type="text" name="addon_meter[]" placeholder="i.e electricity , water , router for Bills" class="form-control" />
-                </div>
-                <button type="button" class="btn mt-2 col-lg-1 col-md-2 btn-sm btn-danger addon-del" data-parent="#row_${rows}"  ><i class="bi bi-trash"></i></button>
-            
-            </div>
-            `
-            addon_container.append(html_template);
-            handleClick($('.addon-del'),function(event){
-            let parent = $(this).attr('data-parent');
-            $(parent).remove();
-            })   
-        })
+    // custom field creator
 
+    // units auto generate 
+    var toggler = document.getElementById('unit_auto_generate')
+    toggler.addEventListener('click',event => {
+        let start_index = document.getElementById('start_index')
+        if(toggler.checked){
+            start_index.removeAttribute("disabled")
+        }else{
+            start_index.setAttribute('disabled',true)
+        }
+    })
 
-        asyncSendFormData('u_form',(response)=>{
-            $('#u_form_feedback').empty().html(`
-              <div class="alert alert-success alert-dismissible fade show">
-                <strong>Hurray!</strong> Unit(s) were added successfully.
-                <button type="button" class="btn-close" data-bs-dismiss="alert" ></button>
-              </div>
-            `)  
-            document.getElementById('u_form').reset();
-            loadUnits(true);
-        },_token  )
-
-
-        <?php
-        // include onboarding rules javascript
-        if(count($data['onboarding_rules']) > 0):
-        
-        ?>
-        var rules = <?= json_encode($data['onboarding_rules']) ?>;
-        rules.forEach((rule , index)=>{
-          if(rule.hasPaymentImplication){
-            // register a payment submit handler
-             var id =  String(rule.rule_title).toLowerCase().replace(" ","_")
-            asyncSendFormData(`${id}_form`,(response)=>{
-            $(`${id}_form_feedback`).empty().html(`
-              <div class="alert alert-success alert-dismissible fade show">
-                <strong>Rule has been satisfied!</strong> 
-                <button type="button" class="btn-close" data-bs-dismiss="alert" ></button>
-              </div>
-            `)  
-            
-        },_token);
-          }
-
-        });
+    // units auto generate
 
 
 
-
-        <?php
-        
-        endif;
-        // on boarding rules javascript
-        ?>
-        asyncSendFormData('t_form',(response)=>{
-            $('#t_form_feedback').empty().html(`
-              <div class="alert alert-success alert-dismissible fade show">
-                <strong>Hurray!</strong> Tenant was added successfully.
-                <button type="button" class="btn-close" data-bs-dismiss="alert" ></button>
-              </div>
-            `)  
-            upload_preview.empty();
-            loadUnits(true);
-
-        },_token);
-     
-    });
-
-
-
+})
 
 </script>
+

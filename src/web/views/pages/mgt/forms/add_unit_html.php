@@ -6,19 +6,19 @@
                 <button type="button" class="btn-close" aria-label="Close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-            <form action="<?=app_url('api/property/' . $data['property'] . '/unit' )?>" id="u_form">
-                <div id="u_form_feedback"></div>
+            <form action="<?=app_url('api/property/' . $data['property'] . '/unit' )?>" id="units_form">
+                <div id="units_form_feedback"></div>
                 <div class="row justify-content-between border-bottom border-secondary container ">
                     <div class="col-md-3 col-lg-3">
                         <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="u_auto_generate"  name="auto_generate">
+                            <input class="form-check-input" type="checkbox" id="unit_auto_generate"  name="auto_generate">
                             <label class="form-check-label" for="show_autogenerate_trigger">use Auto Generate</label>
                         </div>
                     </div>
                     <div class="col-md-3 col-lg-3"  id="u_start_index">
                         <div class="form-group  d-flex align-items-center " >
                             <label class="form-label  mx-1" for="start_index">Start Index</label>
-                            <input type="text"  name="start_index" class="form-control form-control-sm" placeholder=" e.g (1) "   >
+                            <input type="number" min="1" max="500"  name="start_index" id="start_index" class="form-control form-control-sm" placeholder=" e.g (1) "   >
                             <span id="start_index_error" class="text-danger error-feedback"></span>
                         </div>
                     </div>
@@ -38,8 +38,7 @@
                     </div>
                     <div class="col-md-4 col-sm-6 col-lg-3">
                         <label for="floor">Floor</label>
-                        <select name="floor_id" id="u_floors" class="form-select form-control">
-                            <option value="" selected >Choose Floor</option>
+                        <select name="floor_id" id="floor_selection" class="form-select form-control">
                         </select>
                         <span id="floor_id_error" class="text-danger error-feedback"></span>
                     </div>
@@ -82,15 +81,6 @@
                         <span id="description_error" class="text-danger error-feedback"></span>
                         <textarea name="description" placeholder="description..." class="form-control" maxlength="200" id="" cols="30" rows="5"></textarea>
                     </div>
-                </div>
-
-                <hr class="bg-secondary my-1">
-                <div class="d-flex align-items-center my-2">
-                    <h4 class=" me-2">Add-Ons</h4>
-                     <button type="button" id="u_addon_btn_add" class="btn btn-success btn-sm">add</button>
-                </div>
-                <div id="u_addon_container" class="p-2">
-
                 </div>
                 <div class="d-flex justify-content-center align-items-center">
                      <button type="submit" id="u_submit_btn" class="btn btn-dark  w-75">Save <i class="bi bi-save"></i> </button>

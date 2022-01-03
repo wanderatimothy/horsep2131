@@ -10,7 +10,9 @@ use core\aggregates\property;
 use core\aggregates\property_type;
 use core\aggregates\unit;
 use core\aggregates\unit_addon;
+use core\exceptions\ServiceException;
 use Exception;
+use GuzzleHttp\Exception\ServerException;
 use infrastructure\database\specifications\Repositories\LandlordRepository;
 use infrastructure\database\specifications\Repositories\PropertyRepository;
 // use infrastructure\database\specifications\Repository;
@@ -48,36 +50,32 @@ class PropertyService extends _BaseService {
         $no_of_landlords = $this->accountRepository->numberOfLandlords($account);
 
         try{
-            if(is_null($subscription_plan)) throw new Exception("Issue:: Cannot have an account without a subscription type.");
+            if(is_null($subscription_plan)) throw new ServiceException(ServiceException::INVALID_SUBSCRIPTION);
 
-            if($no_of_landlords < $subscription_plan->landlords_allowed){
+            if(($no_of_landlords +1 ) > $subscription_plan->landlords_allowed) throw new ServiceException(ServiceException::PACKAGE_LIMIT);
                 
                 $landlord = new landlord();
                 $landlord->names = strtoupper($request->body->names);
                 $landlord->email = $request->body->email;
                 $landlord->contact = $request->body->contact;
                 $landlord->managers_commission = $request->body->commission;
-                $landlord->tenants = $request->body->tenants;
                 $landlord->last_payout = 'NULL';
-                $landlord->amount_expected = floatval($request->body->collection_expected);
                 $landlord->user_id = $account->user_id;
-
                 $this->landlordRepository->add($landlord);
                 $this->landlordRepository->saveChanges();
 
+                if(!$this->landlordRepository->last_insert_id()) throw new ServiceException('Landlord not created');
+                
                 $account->landlords = $account->landlords + 1;
                 $this->accountRepository->Add($account);
                 $this->accountRepository->saveChanges();
 
                 return true;   
-            }
             
-            return ['error' => 'Your package is limited to' . $subscription_plan->landlords_allowed. ' landlords to add more please upgrade to a larger plan '];
 
-
-        }catch(Exception $e){
+        }catch(ServiceException $e){
             // $this->_logger->log()->warning($e->getMessage());
-            return false;
+            return $e->infoMessage();
         }
        
     }
@@ -85,46 +83,95 @@ class PropertyService extends _BaseService {
 
 
     function create_property(Request $request , account $account){
-         $subscription_plan = $this->accountRepository->subscriptionType($account);
-         $no_of_properties = $this->landlordRepository->numberOfProperties(implode(',',$this->get_landlord_ids($account)));
-         try{
-            if(is_null($subscription_plan)) throw new Exception("Issue:: Cannot have an account without a subscription type.");
 
-            if($no_of_properties < $subscription_plan->properties_allowed){
+         $subscription_plan = $this->accountRepository->subscriptionType($account);
+
+         $no_of_properties = $this->landlordRepository->numberOfProperties(implode(',',$this->get_landlord_ids($account)));
+
+         try{
+            if(is_null($subscription_plan)) throw new ServiceException(ServiceException::INVALID_SUBSCRIPTION);
+
+            if(($no_of_properties + 1) > $subscription_plan->properties_allowed) throw new ServiceException(ServiceException::PACKAGE_LIMIT);
               
                 $property = new property();
                 $property->landlord_id = $request->body->landlord_id;
                 $property->property_label = $request->body->label;
                 $property->location = $request->body->location;
-                $property->rent_amount = $request->body->rent_amount;
                 $property->type_id = $request->body->type;
                 $property->has_units = $request->body->has_units;
 
                 $this->repository->Add($property);
                 $this->repository->saveChanges();
+                
+                if(!$this->repository->last_insert_id()) throw new ServiceException('Property was not saved');
 
-                if(isset($request->body->has_custom_fields)){
-                 $fields = $this->settingService->getCustomFields(property::class , $account);
-                 $values = get_object_vars($request->body);
-                 foreach($fields as $field){
-                     $this->settingService->saveCustomValue(property::class , $this->repository->last_insert_id() , $field, $values[strtolower(str_replace(" ","_",$field->name))]);  
-                        
+                $property->id = $this->repository->last_insert_id();
+
+                // custom field
+
+                if($request->body->has_custom_fields &&  isset($request->body->custom_field_value)){
+
+                    $save_fields = [];
+    
+                    $error_occurred = false;
+    
+    
+                    for($i=0;$i<count($request->body->custom_field_name); $i++){
+    
+                        $data = array(
+                            'model' => property::class,
+                            'id' => $property->id,
+                            'value' => $request->body->custom_field_value[$i],
+                            'name' => $request->body->custom_field_name[$i],
+                            'type' => $request->body->custom_field_type[$i],
+                        );
+    
+                        $saved = $this->saveCustomField((object)$data);
+    
+                        if(is_array($saved)){
+    
+                            $error_which_occurred = $saved['info'];
+    
+                            $error_occurred = false;
+    
+                            break;
+    
+                        }else{
+    
+                            $save_fields[] = $saved;
+                        }
+    
+    
                     }
+    
+                    if($error_occurred){
+    
+                       if(count($save_fields) > 0) $this->settingsService->settingsRepository->deleteCustomFields($save_fields);
+    
+                       $this->repository->data[] = $property;
+    
+                       $this->repository->delete();
+    
+                       throw new ServiceException($error_which_occurred);
+                    }
+    
                 }
+
+                // custom field
+
+                
 
                 $account->properties = $account->properties + 1;
                 $this->accountRepository->Add($account);
                 $this->accountRepository->saveChanges();
 
                 return true; 
-            }
-
-            return ['error' => 'Your package is limited to' . $subscription_plan->properties_allowed. ' properties to add more please upgrade to a larger plan '];
 
 
-         }catch(Exception $e){
+
+         }catch(ServiceException $e){
             // $this->_logger->log()->warning($e->getMessage());
-            return false;
+            return $e->infoMessage();
          }
 
     }

@@ -18,6 +18,7 @@ $router->post('/logout','web\controllers\SystemController@logout');
 // system Routes
 $router->get('/dashboard','web\controllers\SystemController@index');
 $router->get('/properties','web\controllers\SystemController@properties');
+$router->get('/property/{property}/unit/{unit}','web\controllers\SystemController@manage_unit');
 $router->get('/property/{id}','web\controllers\SystemController@manage_property');
 $router->get('/settings','web\controllers\SystemController@settings');
 
@@ -43,6 +44,8 @@ $router->get('/api/tenant-fields','web\controllers\resources\SettingsResource@cu
 $router->get('/api/property-fields','web\controllers\resources\SettingsResource@customPropertyField');
 $router->post('/api/on-boarding-rule','web\controllers\resources\SettingsResource@create_on_boarding_rule');
 $router->get('/api/on-boarding-rules','web\controllers\resources\SettingsResource@onboardingRules');
+$router->get('/api/property/{property}/unit/{unit}/tenants','web\controllers\resources\TenantResource@TenantsInUnit');
+
 
 
 

@@ -33,58 +33,15 @@ class SettingsService extends _BaseService {
     }
 
 
-    function setCustomField(Request $request ,account $account){
-
-        // creating custom fields on forms
-
-            $cf = new custom_field();
-            $cf->name = $request->body->name;
-            $cf->field_id = $request->body->type_id;
-            if($request->body->model == 'tenant') $cf->model = tenant::class;
-            if($request->body->model == 'property') $cf->model = property::class;
-            if($request->body->model == 'unit') $cf->model = unit::class;
-            if($request->body->model == 'manager') $cf->model = manager::class;
-            $cf->account_id = $account->id;
-            $this->settingsRepository->Add($cf);
-            $this->settingsRepository->saveChanges();
-             return $this->settingsRepository->last_insert_id() ? true : ['info' => 'The fields could not be added to your '. $request->body->model. ' model' ];
-
-    }
-
-    function saveCustomValue($model,$id,custom_field $custom_field,$value){
-
-        $type = $this->settingsRepository->getFieldType($custom_field->field_id);
-
-        $cf_v = new cf_value();
-        $cf_v->model = $model;
-        $cf_v->model_id = $id;
-        $cf_v->cf_id = $custom_field->id;
-
-        switch($type->type){
-            case 'text':
-                $cf_v->value = $value;
-                break;
-            case  'number':
-                if(!ctype_digit($value)) return false;
-                $cf_v->value = $value;
-            break;
-            case  'date':
-                $cf_v->value = $value;
-             break;
-            default:
-            throw new RuntimeException('could not determine the type of field');
-        }
-        
-        $this->settingsRepository->Add($cf_v);
-        $this->settingsRepository->saveChanges();
-        return true;
-
-    }
-
-    
-
-    function allFields(){
-        return $this->settingsRepository->getList(new field);
+ 
+    function fields(){
+        return [
+            'Text',
+            'Phone',
+            'Number',
+            'Email',
+            'Description'
+        ];
     }
 
     public function timePeriods(){
@@ -109,10 +66,7 @@ class SettingsService extends _BaseService {
         return $timePeriods;
     }
 
-    function getCustomFields($model , account $account){
-        return $this->settingsRepository->getCustomFields($model ,$account);
-    }
-
+    
 
     function createRentingMode(Request $request , account $account){
 

@@ -81,7 +81,7 @@ class ValidationService {
        if(!self::not_undefined('location',$request->body)) $errors['location'] = 'Property  location is required';
        if(!self::not_undefined('landlord_id',$request->body)) $errors['landlord_id'] = 'Please Choose a landlord';
        if(!self::not_undefined('type',$request->body)) $errors['type'] = 'Please Choose a type';
-       if(!self::is_number('rent_amount',$request->body)) $errors['rent_amount'] = 'Rent Amount Should be a number';
+    //    if(!self::is_number('rent_amount',$request->body)) $errors['rent_amount'] = 'Rent Amount Should be a number';
     
        return $errors;
    }

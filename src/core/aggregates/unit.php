@@ -7,8 +7,6 @@ class unit extends model{
 
     public int $id = 0;
 
-    public int $property_id = 0;
-
     public string $label = '';
 
     public bool $is_occupied = false;
@@ -27,7 +25,17 @@ class unit extends model{
 
     public $description  =  '';
 
+    public $security_deposit = false;
+
+    public $rent_deposit_before_entry = false;
+
+    public $cycles_to_pay_before_entry = 3;
+
+    public $security_deposit_amount = 0.00;
+
     public int $floor_id = 0;
+
+    public int $block_id = 0;
 
     public $timestamps_on = true;
 
@@ -35,6 +43,6 @@ class unit extends model{
 
     public static function foreign_keys()
     {
-        return ['property_id' => property::class , 'floor_id' => floor::class ];
+        return ["block_id" => property_block::class, 'floor_id' => floor::class ];
     }
 }

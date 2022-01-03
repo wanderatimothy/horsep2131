@@ -5,13 +5,11 @@ use core\aggregates\action_trail;
 use core\aggregates\add_on_type;
 use core\aggregates\advance;
 use core\aggregates\advance_log;
-use core\aggregates\cf_value;
 use core\aggregates\collection;
 use core\aggregates\custom_field;
 use core\aggregates\disbursement;
 use core\aggregates\document;
 use core\aggregates\email_template;
-use core\aggregates\field;
 use core\aggregates\floor;
 use core\aggregates\invoice;
 use core\aggregates\landlord;
@@ -63,9 +61,7 @@ migrator::run(function(){
         new on_boarding_rule,
         new renting_mode,
         new renting_mode_setting,
-        new field , 
         new custom_field,
-        new cf_value,
         new notification,
         new sent_notification,
         new suspension,
